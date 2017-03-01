@@ -1,0 +1,439 @@
+#+TITLE: myinit.org
+#+AUTHOR: Andrés Herrera Poyatos
+
+* Introduction: my Emacs configuration file
+
+This is my Emacs init file, written in org-mode using literate programming. The configuration file is mainly inspired in Mario Román's emacs configuration (https://github.com/M42/.emacs.d).
+He has taken ideas for his configuration mainly from:
+
+ - [[http://cestlaz.github.io/][C'est la Z]]
+ - [[https://github.com/hrs/dotfiles/blob/master/emacs.d/configuration.org][Harry R. Schwartz's configuration file]]
+
+It works on Emacs 25.1 and org-mode 9.0.5.
+
+** Personal information
+
+#+BEGIN_SRC emacs-lisp
+(setq user-full-name "Andrés Herrera Poyatos"
+      user-mail-address "andreshp9@gmail.com")
+#+END_SRC
+
+* use-package
+
+Here we configure and explain the =use-package utility=, which will be used through all the emacs configuration. The package =use-package= allows us to easily install and configure packages and reduces the loading charge of emacs. In order to do so it postpones some packages related operations until emacs is completely loaded.
+
+The standard syntaxis of =use-package= is
+
+(use-package foo
+  :init
+  (setq foo-variable t)
+  :config
+  (foo-mode 1))
+
+With these commands =use-package= will load the package =foo= when starting emacs. The init commands are executed while the =foo= package is being loaded. On the other hand, the config commands are executed when the package is completely loaded. As a consequence emacs loading charge is reduced. If the =foo= package is not installed, then =use-package= produces a warning when starting emacs. You can let =use-package= to install the package byitself with the =:ensure t= command:
+
+(use-package foo
+  :ensure t
+  :init
+  (setq foo-variable t)
+  :config
+  (foo-mode 1))
+
+However, I prefer this behaviour to be used by default. Hence I use the following =use-package= setting.
+
+#+BEGIN_SRC emacs-lisp
+(setq use-package-always-ensure t)
+#+END_SRC 
+
+* Emacs default behaviour
+
+Improves emacs default behaviour. Concretely, the menu is not displayed.
+
+#+BEGIN_SRC emacs-lisp
+(use-package better-defaults)
+#+END_SRC 
+
+Adds a default file, which will be opened each time that you open emacs (see this [[http://stackoverflow.com/questions/7083181/how-to-load-file-into-buffer-and-switch-to-buffer-on-start-up-in-emacs][question]]).
+
+#+BEGIN_SRC emacs-lisp
+(setq initial-buffer-choice "~/Documents/todo.org")
+#+END_SRC 
+
+Maximizes the editor to fullscreen at startup.
+
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+#+END_SRC 
+
+* Text formating
+
+** Font choice
+
+Chooses Source Code Pro as the editor's font.
+
+#+BEGIN_SRC emacs-lisp
+  (custom-set-faces
+    ;; custom-set-faces was added by Custom.
+    ;; If you edit it by hand, you could mess it up, so be careful.
+    ;; Your init file should contain only one such instance.
+    ;; If there is more than one, they won't work right.
+    '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 102 :width normal :foundry "PfEd" :family "Source Code Pro")))))
+#+END_SRC
+
+
+** Indentation
+
+Choose the tab's size.
+
+#+BEGIN_SRC emacs-lisp
+  (setq tab-width 4)
+#+END_SRC
+
+Uses SmartTabs. You can find a good explanation about why using SmartTabs in https://www.emacswiki.org/emacs/TabsAreEvil. 
+
+#+BEGIN_SRC emacs-lisp
+;  (setq-default indent-tabs-mode nt)
+  (use-package smart-tabs-mode)
+#+END_SRC
+
+
+** Visual line mode
+
+Sets the row length in characters (fill-column variable) and turns orn the visual-line-mode along with visual-fill-column minor mode.
+
+#+BEGIN_SRC emacs-lisp
+(setq-default fill-column 120)
+#+END_SRC
+
+An introduction to wraps and filling in Emacs can be found in [[johnlaudun.org/20080321-word-wrap-filling-in-emacs/][John Laudun's blog]].
+
+Visual-liºne-mode allows us to use soft wraps when the text line's length is greater than the current windows width. If we use this mode with the minor mode visual-fill-column, then we can choose a maximum line's length, measured in number of characters. The number of characters is saved in the fill-column variable.
+
+The following code also sets a symbol for soft wrapped lines, which is used instead of a line number.
+
+#+BEGIN_SRC emacs-lisp
+(use-package visual-fill-column
+  :init
+  (setq visual-line-fringe-indicators '(left-curly-arrow nil)); Symbol used for soft wrapped lines.
+  :config
+  (global-visual-line-mode 1)
+  (global-visual-fill-column-mode)
+)
+#+END_SRC
+
+Most of the information used to set this code can be read in https://www.emacswiki.org/emacs/VisualLineMode.
+
+* Text editing
+
+** Cua-mode
+
+#+BEGIN_SRC emacs-lisp
+(cua-mode t)
+(setq cua-normal-cursor-color "#839496")
+(setq cua-overwrite-cursor-color "#b58900")
+(setq cua-read-only-cursor-color "#859900")
+(setq cua-global-mark-cursor-color "#2aa198")
+#+END_SRC
+
+** Multiple cursors
+
+Uses the package =multiple-cursors= and some key-bindings for it. You can see an example in http://emacsrocks.com/e13.html. The package's documentation can be found on [[https://github.com/magnars/multiple-cursors.el][GitHub]].
+
+#+BEGIN_SRC emacs-lisp
+(use-package multiple-cursors
+  :bind (("C-S-c C-S-c" . mc/edit-lines)
+         ("C->" . mc/mark-next-like-this)
+         ("C-<" . mc/mark-previous-like-this)
+         ("C-c C-<" . mc/mark-all-like-this)))
+#+END_SRC
+
+** Text selection
+
+Marks the whole buffer.
+
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "C-x C-a") 'mark-whole-buffer)
+#+END_SRC
+
+* Programming languages
+
+** Python
+
+You can read about python configuration in https://realpython.com/blog/python/emacs-the-best-python-editor/ and
+http://www.jesshamrick.com/2012/09/18/emacs-as-a-python-ide/.
+
+
+#+BEGIN_SRC emacs-lisp
+(use-package elpy
+  :config
+  (elpy-enable))
+#+END_SRC 
+
+* Tex
+
+** Auctex
+
+Ensures that the auctex package is installed.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package tex
+    :ensure auctex)
+#+END_SRC
+
+* Org-mode
+
+Uses org-mode with the keybinding =C-ñ= to preview formulas.
+
+#+BEGIN_SRC emacs-lisp
+(use-package org
+  :bind
+  ("C-ñ" . org-toggle-latex-fragment)
+)
+#+END_SRC
+
+** Indentation
+
+#+BEGIN_SRC emacs-lisp
+(setq org-startup-indented t)
+(setq org-indent-mode t)
+#+END_SRC
+
+** Functionality
+
+*** Text edition
+
+Supports shift select in org-mode.
+Shift selection has conflicts with org-mode. If you want to use it, then some org-mode commands have to be rebinded (see http://orgmode.org/manual/Conflicts.html). The following variable takes care of it.
+
+#+BEGIN_SRC emacs-lisp
+ (setq org-support-shift-select t)
+#+END_SRC
+
+*** Navigation
+
+Navigation between headings:
+
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'org-mode-hook 
+            (lambda ()
+              (local-set-key "\M-n" 'outline-next-visible-heading)
+              (local-set-key "\M-p" 'outline-previous-visible-heading)))
+#+END_SRC
+
+** Customization of org-mode
+
+Sets attributes for the standard org-mode faces.
+
+*** Bullets
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-bullets 
+  :config
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+)
+
+(set-face-attribute 'org-level-1 nil
+  :inherit 'outline-1
+  :foreground "LightGoldenrod1"
+  :weight 'bold
+  :height 1.1)
+
+(set-face-attribute 'org-level-2 nil
+  :inherit 'outline-1 
+  :weight 'semi-bold
+  :height 1.0)
+
+(set-face-attribute 'org-level-3 nil 
+  :inherit 'outline-3 
+  :weight 'bold)
+
+(set-face-attribute 'org-level-4 nil
+  :inherit 'outline-3 
+  :foreground "light steel blue" 
+  :weight 'normal)
+
+(set-face-attribute 'org-level-5 nil
+  :inherit 'outline-4 
+  :foreground "thistle" 
+  :weight 'normal)
+
+(set-face-attribute 'org-level-6 nil
+  :inherit 'outline-4)
+
+(set-face-attribute 'org-level-8 nil
+  :inherit 'outline-7)
+
+(set-face-attribute 'org-link nil
+  :inherit 'link 
+  :foreground "SlateGray1"
+  :underline nil)
+#+END_SRC
+
+*** Headings
+
+Avoids that the solarized theme increases headings size for org-mode. This theme use a bigger font for org headings by default. See [[http://emacs.stackexchange.com/questions/18586/strange-behaviour-of-solarized-theme-in-org-mode][Joao Eira's work]] regarding this question.
+
+#+BEGIN_SRC emacs-lisp
+(setq solarized-scale-org-headlines nil)
+#+END_SRC
+
+Uses a line between headings.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-cycle-separator-lines 1)
+#+END_SRC
+
+** Maths
+
+*** Formulas' size
+
+The renderized formulas in org-mode have a predefined size. We want the formulas
+to have a size proportional to the text. A solution to this issue was given by
+[[http://emacs.stackexchange.com/questions/3387/how-to-enlarge-latex-fragments-in-org-mode-at-the-same-time-as-the-buffer-text][thisirs and Mark]] and is applied below.
+
+#+BEGIN_SRC emacs-lisp
+  (defun update-org-latex-fragment-scale ()
+    (let ((text-scale-factor
+      (expt text-scale-mode-step text-scale-mode-amount)))
+      (plist-put org-format-latex-options :scale (* 1.2 text-scale-factor)))
+  )
+  (add-hook 'text-scale-mode-hook 'update-org-latex-fragment-scale)
+#+END_SRC
+
+*** Latex math mode
+
+Requires Latex to use =latex-math-mode=. It is activated by default.
+
+#+BEGIN_SRC emacs-lisp
+  (require 'latex)
+  (add-hook 'org-mode-hook 'LaTeX-math-mode)
+#+END_SRC
+
+*** Latex math mode abbreviations
+
+Abbreviations on =latex-math-mode=.
+
+#+BEGIN_SRC emacs-lisp
+  (setq LaTeX-math-abbrev-prefix "ç")
+  (setq LaTeX-math-list
+    (quote
+      ((";" "mathbb{" "" nil)
+       ("=" "cong" "" nil)
+       ("<right>" "longrightarrow" "" nil)
+       ("<left>" "longleftarrow" "" nil)
+       ("C-<right>" "Longrightarrow" "" nil)
+       ("C-<left>" "Longleftarrow" "" nil)
+       ("^" "widehat" "" nil)
+       ("~" "widetilde" "" nil)
+       ("'" "\partial" "" nil)
+       ("0" "varnothing" "" nil)
+       ("C-(" "left(" "" nil)
+       ("C-)" "right)" "" nil)
+       )))
+#+END_SRC
+
+** Images
+
+Tells org-mode to renderize the images inline. More about this issue in http://stackoverflow.com/questions/27129338/inline-images-in-org-mode.
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-startup-with-inline-images t)
+#+END_SRC
+
+** References
+
+https://github.com/jkitchin/org-ref/blob/master/org-ref.org
+
+*** eqref
+
+** pdf
+
+Macro to toggle complete preview of latex of an Org file. Keybinded to C-x C-o.
+
+#+begin_src emacs-lisp
+(fset 'org-latex-complete-preview
+      (lambda (&optional arg) "Keyboard macro." (interactive "p")
+        (kmacro-exec-ring-item
+         (quote ("" 0 "%d")) arg)
+        )
+      )
+(global-set-key (kbd "C-x C-o") 'org-latex-export-to-pdf)
+#+end_src
+
+** agenda
+
+Integrates org-agenda with gnome's agenda.
+
+#+BEGIN_SRC emacs-lisp
+;(use-package org-gnome)
+#+END_SRC
+
+* Theme
+
+** Cursor
+
+More about the emacs' cursor in https://www.gnu.org/software/emacs/manual/html_node/emacs/Cursor-Display.html.
+
+#+BEGIN_SRC emacs-lisp
+(setq-default cursor-type '(bar . 3) ) 
+#+END_SRC
+
+The cursor is set in blink mode, that is, it blinks every second. By default, the cursor blinks every second unless emacs is inactive for 10 seconds.
+
+#+BEGIN_SRC emacs-lisp
+;(setq blink-cursor-mode t)
+#+END_SRC
+
+** Lines format
+
+*** Highlight the current line
+
+The current line is high-lighted.
+
+#+BEGIN_SRC emacs-lisp
+(setq global-hl-line-mode t)
+#+END_SRC 
+
+*** Enumerate each line
+
+Activates the linum mode so that the lines number are shown in the left margin.
+
+#+BEGIN_SRC emacs-lisp
+(use-package linum
+  :init
+  (setq global-linum-mode t)
+  (setq linum-format " %d  ")
+)
+#+END_SRC 
+
+Set the [[http://stackoverflow.com/questions/21861491/how-to-add-padding-to-emacs-nw-linum-mode][linum mode's format]].
+
+Use a left fridge size of the same size than the current font. The code is due to [[http://unix.stackexchange.com/questions/29786/font-size-issues-with-emacs-in-linum-mode/30087#30087][Pablo Machón]].
+
+#+BEGIN_SRC emacs-lisp
+;(setq linum-format "%4d \u2502 ")
+(defun linum-update-window-scale-fix (win)
+  "fix linum for scaled text"
+  (set-window-margins win
+    (ceiling (* 
+      (if (boundp 'text-scale-mode-step) (expt text-scale-mode-step text-scale-mode-amount) 1)
+      (if (car (window-margins)) (car (window-margins)) 1)
+    ))
+  )
+)
+(advice-add #'linum-update-window :after #'linum-update-window-scale-fix)
+#+END_SRC 
+
+
+Changes the frindge size
+http://emacsredux.com/blog/2015/01/18/customizing-the-fringes/
+(fringe-mode 4)
+
+** Colors
+
+#+BEGIN_SRC emacs-lisp
+(use-package solarized-theme
+  :init
+  (load-theme 'solarized-light t)
+)
+#+END_SRC
