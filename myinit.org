@@ -1,5 +1,3 @@
-#+TITLE: myinit.org
-#+AUTHOR: Andrés Herrera Poyatos
 
 * Introduction: my Emacs configuration file
 
@@ -171,13 +169,201 @@ http://www.jesshamrick.com/2012/09/18/emacs-as-a-python-ide/.
 
 * Tex
 
+https://piotrkazmierczak.com/2010/emacs-as-the-ultimate-latex-editor/
+
 ** Auctex
 
 Ensures that the auctex package is installed.
 
+We also change latex math mode prefix. It has to be changed before latex.el is loaded (see an [[http://emacs.1067599.n8.nabble.com/Set-LaTeX-math-abbrev-prefix-td84574.html][explanation]]).
+
 #+BEGIN_SRC emacs-lisp
-  (use-package tex
-    :ensure auctex)
+(use-package tex
+  :ensure auctex
+  :init
+  (setq TeX-auto-save t)
+  (setq TeX-parse-self t)
+  (setq TeX-save-query nil)
+  (setq TeX-PDF-mode t)
+  (setq LaTeX-math-abbrev-prefix "ç")
+)
+(require 'latex)
+
+;; Use pdf-tools to open PDF files
+(setq TeX-view-program-selection '((output-pdf "PDF Tools")) TeX-source-correlate-start-server t)
+
+;; Update PDF buffers after successful LaTeX runs
+(add-hook 'TeX-after-TeX-LaTeX-command-finished-hook #'TeX-revert-document-buffer)
+#+END_SRC
+
+** Flymake
+
+*** Check tex syntax
+
+#+BEGIN_SRC emacs-lisp
+(use-package flymake
+  :config
+  (add-hook 'LaTeX-mode-hook 'flymake-mode)
+)
+
+(defun flymake-get-tex-args (file-name)
+(list "pdflatex"
+(list "-file-line-error" "-draftmode" "-interaction=nonstopmode" file-name)))
+
+#+END_SRC
+
+*** Check spelling
+
+http://unix.stackexchange.com/questions/86554/make-hunspell-work-with-emacs-and-german-language
+http://emacs.stackexchange.com/questions/19982/hunspell-error-in-emacs
+
+
+**** Adds dictionaries
+
+#+BEGIN_SRC emacs-lisp
+(setq ispell-local-dictionary-alist
+  '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en_US") nil utf-8)))
+(add-to-list 'ispell-local-dictionary-alist 
+  '("es_ES" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "es_ES") nil utf-8))
+#+END_SRC
+
+
+**** Select hunspell
+
+#+BEGIN_SRC emacs-lisp
+(setq ispell-program-name "hunspell")
+(setq ispell-dictionary "en_US") ; Default dictionary to use
+(setq ispell-really-hunspell t)
+
+(add-hook 'text-mode-hook 'flyspell-mode)
+(add-hook 'text-mode-hook 'flyspell-buffer)
+#+END_SRC
+
+**** Change the current dictionary
+
+#+BEGIN_SRC emacs-lisp
+(let ((langs '("en_US" "es_ES")))
+  (setq lang-ring (make-ring (length langs)))
+  (dolist (elem langs) (ring-insert lang-ring elem)))
+
+(defun cycle-ispell-languages ()
+  (interactive)
+  (let ((lang (ring-ref lang-ring -1)))
+    (ring-insert lang-ring lang)
+    (ispell-change-dictionary lang))
+  (message "Switched dictionary to %s" lang)
+)
+
+(global-set-key (kbd "C-c d") 'cycle-ispell-languages)
+#+END_SRC
+
+**** Keybindings
+
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "C-c c") 'flyspell-correct-word-before-point)
+(global-set-key (kbd "C-c a") 'flyspell-auto-correct-word)
+(global-set-key (kbd "C-c b") 'flyspell-buffer)
+#+END_SRC
+
+** Compile
+
+Compiles as many times as needed. The keybinding is C-c l. Found in https://www.emacswiki.org/emacs/TN.
+
+#+BEGIN_SRC emacs-lisp
+(require 'tex-buf)
+(defun TeX-command-default (name)
+  "Next TeX command to use. Most of the code is stolen from `TeX-command-query'."
+  (cond ((if (string-equal name TeX-region)
+			     (TeX-check-files (concat name "." (TeX-output-extension))
+					      (list name)
+					      TeX-file-extensions)
+			   (TeX-save-document (TeX-master-file)))
+			 TeX-command-default)
+			((and (memq major-mode '(doctex-mode latex-mode))
+			      (TeX-check-files (concat name ".bbl")
+					       (mapcar 'car
+						       (LaTeX-bibliography-list))
+					       BibTeX-file-extensions))
+			 ;; We should check for bst files here as well.
+			 TeX-command-BibTeX)
+			((TeX-process-get-variable name
+						   'TeX-command-next
+						   TeX-command-Show))
+			(TeX-command-Show)))
+
+
+(defcustom TeX-texify-Show t "Start view-command at end of TeX-texify?" :type 'boolean :group 'TeX-command)
+(defcustom TeX-texify-max-runs-same-command 5 "Maximal run number of the same command" :type 'integer :group 'TeX-command)
+
+(defun TeX-texify-sentinel (&optional proc sentinel)
+  "Non-interactive! Call the standard-sentinel of the current LaTeX-process.
+If there is still something left do do start the next latex-command."
+  (set-buffer (process-buffer proc))
+  (funcall TeX-texify-sentinel proc sentinel)
+  (let ((case-fold-search nil))
+    (when (string-match "\\(finished\\|exited\\)" sentinel)
+      (set-buffer TeX-command-buffer)
+      (unless (plist-get TeX-error-report-switches (intern (TeX-master-file)))
+	(TeX-texify)))))
+
+(defun TeX-texify ()
+  "Get everything done."
+  (interactive)
+  (let ((nextCmd (TeX-command-default (TeX-master-file)))
+	proc)
+    (if (and (null TeX-texify-Show)
+	     (equal nextCmd TeX-command-Show))
+	(when  (called-interactively-p 'any)
+	  (message "TeX-texify: Nothing to be done."))
+      (TeX-command nextCmd 'TeX-master-file)
+      (when (or (called-interactively-p 'any)
+		(null (boundp 'TeX-texify-count-same-command))
+		(null (boundp 'TeX-texify-last-command))
+		(null (equal nextCmd TeX-texify-last-command)))
+	(mapc 'make-local-variable '(TeX-texify-sentinel TeX-texify-count-same-command TeX-texify-last-command))
+	(setq TeX-texify-count-same-command 1))
+      (if (>= TeX-texify-count-same-command TeX-texify-max-runs-same-command)
+	  (message "TeX-texify: Did %S already %d times. Don't want to do it anymore." TeX-texify-last-command TeX-texify-count-same-command)
+	(setq TeX-texify-count-same-command (1+ TeX-texify-count-same-command))
+	(setq TeX-texify-last-command nextCmd)
+	(and (null (equal nextCmd TeX-command-Show))
+	     (setq proc (get-buffer-process (current-buffer)))
+	     (setq TeX-texify-sentinel (process-sentinel proc))
+	     (set-process-sentinel proc 'TeX-texify-sentinel))))))
+
+(add-hook 'LaTeX-mode-hook '(lambda () (local-set-key (kbd "C-c l") 'TeX-texify)))
+#+END_SRC
+
+** Latex-math-mode
+
+Activates latex math mode in Latex.
+
+#+BEGIN_SRC emacs-lisp
+(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+#+END_SRC
+
+**** Latex math mode abbreviations
+
+Adds new abbreviations for =latex-math-mode=.
+
+#+BEGIN_SRC emacs-lisp
+(setq LaTeX-math-list
+  (quote
+    (("B" "mathbb{" "" nil)
+     ("C" "mathcal{" "" nil)
+     ("K" "mathfrack{" "" nil)
+     ("=" "cong" "" nil)
+     ("<right>" "longrightarrow" "" nil)
+     ("<left>" "longleftarrow" "" nil)
+     ("C-<right>" "Longrightarrow" "" nil)
+     ("C-<left>" "Longleftarrow" "" nil)
+     ("^" "widehat" "" nil)
+     ("~" "widetilde" "" nil)
+     ("'" "\partial" "" nil)
+     ("0" "varnothing" "" nil)
+     ("C-(" "left(" "" nil)
+     ("C-)" "right)" "" nil)
+     )))
 #+END_SRC
 
 * Org-mode
@@ -302,34 +488,10 @@ to have a size proportional to the text. A solution to this issue was given by
 
 *** Latex math mode
 
-Requires Latex to use =latex-math-mode=. It is activated by default.
+Activates =latex-math-mode=.
 
 #+BEGIN_SRC emacs-lisp
-  (require 'latex)
-  (add-hook 'org-mode-hook 'LaTeX-math-mode)
-#+END_SRC
-
-*** Latex math mode abbreviations
-
-Abbreviations on =latex-math-mode=.
-
-#+BEGIN_SRC emacs-lisp
-  (setq LaTeX-math-abbrev-prefix "ç")
-  (setq LaTeX-math-list
-    (quote
-      ((";" "mathbb{" "" nil)
-       ("=" "cong" "" nil)
-       ("<right>" "longrightarrow" "" nil)
-       ("<left>" "longleftarrow" "" nil)
-       ("C-<right>" "Longrightarrow" "" nil)
-       ("C-<left>" "Longleftarrow" "" nil)
-       ("^" "widehat" "" nil)
-       ("~" "widetilde" "" nil)
-       ("'" "\partial" "" nil)
-       ("0" "varnothing" "" nil)
-       ("C-(" "left(" "" nil)
-       ("C-)" "right)" "" nil)
-       )))
+(add-hook 'org-mode-hook 'LaTeX-math-mode)
 #+END_SRC
 
 ** Images
@@ -391,27 +553,26 @@ The cursor is set in blink mode, that is, it blinks every second. By default, th
 The current line is high-lighted.
 
 #+BEGIN_SRC emacs-lisp
-(setq global-hl-line-mode t)
+(global-hl-line-mode 1)
 #+END_SRC 
 
 *** Enumerate each line
 
 Activates the linum mode so that the lines number are shown in the left margin.
+The code also sets the [[http://stackoverflow.com/questions/21861491/how-to-add-padding-to-emacs-nw-linum-mode][linum mode's format]].
 
 #+BEGIN_SRC emacs-lisp
 (use-package linum
   :init
-  (setq global-linum-mode t)
   (setq linum-format " %d  ")
+  :config
+  (global-linum-mode 1)
 )
 #+END_SRC 
-
-Set the [[http://stackoverflow.com/questions/21861491/how-to-add-padding-to-emacs-nw-linum-mode][linum mode's format]].
 
 Use a left fridge size of the same size than the current font. The code is due to [[http://unix.stackexchange.com/questions/29786/font-size-issues-with-emacs-in-linum-mode/30087#30087][Pablo Machón]].
 
 #+BEGIN_SRC emacs-lisp
-;(setq linum-format "%4d \u2502 ")
 (defun linum-update-window-scale-fix (win)
   "fix linum for scaled text"
   (set-window-margins win
@@ -437,3 +598,5 @@ http://emacsredux.com/blog/2015/01/18/customizing-the-fringes/
   (load-theme 'solarized-light t)
 )
 #+END_SRC
+
+#  LocalWords:  Auctex
