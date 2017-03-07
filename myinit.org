@@ -1,3 +1,5 @@
+#+TITLE: myinit.org
+#+AUTHOR: Andrés Herrera Poyatos
 
 * Introduction: my Emacs configuration file
 
@@ -43,16 +45,15 @@ However, I prefer this behaviour to be used by default. Hence I use the followin
 (setq use-package-always-ensure t)
 #+END_SRC 
 
-* Emacs default behaviour
+* Emacs default behavior
 
-Improves emacs default behaviour. Concretely, the menu is not displayed.
+Improves emacs default behavior. Concretely, the menu is not displayed.
 
 #+BEGIN_SRC emacs-lisp
 (use-package better-defaults)
 #+END_SRC 
 
 Adds a default file, which will be opened each time that you open emacs (see this [[http://stackoverflow.com/questions/7083181/how-to-load-file-into-buffer-and-switch-to-buffer-on-start-up-in-emacs][question]]).
-
 #+BEGIN_SRC emacs-lisp
 (setq initial-buffer-choice "~/Documents/todo.org")
 #+END_SRC 
@@ -100,7 +101,7 @@ Uses SmartTabs. You can find a good explanation about why using SmartTabs in htt
 Sets the row length in characters (fill-column variable) and turns orn the visual-line-mode along with visual-fill-column minor mode.
 
 #+BEGIN_SRC emacs-lisp
-(setq-default fill-column 120)
+(setq-default fill-column 100)
 #+END_SRC
 
 An introduction to wraps and filling in Emacs can be found in [[johnlaudun.org/20080321-word-wrap-filling-in-emacs/][John Laudun's blog]].
@@ -153,6 +154,34 @@ Marks the whole buffer.
   (global-set-key (kbd "C-x C-a") 'mark-whole-buffer)
 #+END_SRC
 
+** Predictive mode
+
+Installs =predictive-mode=. See more about the installation process in http://www.dr-qubit.org/predictive/predictive-user-manual/html/Obtaining-and-Installing.html.
+
+You can check =predictive-mode= basic documentation in https://www.emacswiki.org/emacs/PredictiveMode.
+
+#+BEGIN_SRC emacs-lisp
+;; predictive install location
+(add-to-list 'load-path "~/.emacs.d/predictive/")
+;; dictionary locations
+(add-to-list 'load-path "~/.emacs.d/predictive/latex/")
+(add-to-list 'load-path "~/.emacs.d/predictive/texinfo/")
+(add-to-list 'load-path "~/.emacs.d/predictive/html/")
+;; load predictive package as it is needed.
+(autoload 'predictive-mode "predictive" "predictive" t)
+
+(set-default 'predictive-auto-add-to-dict t)
+(setq predictive-main-dict 'dict-english
+      predictive-auto-learn t
+      predictive-add-to-dict-ask nil
+      predictive-use-auto-learn-cache nil
+      predictive-which-dict t)
+
+(setq predictive-ignore-initial-caps t)
+(setq auto-completion-syntax-alist (quote (global accept . word))) ;; Use space and punctuation to accept the current the most likely completion.
+(setq auto-completion-min-chars (quote (global . 2))) ;; Avoid completion for short trivial words.
+#+END_SRC
+
 * Programming languages
 
 ** Python
@@ -169,13 +198,98 @@ http://www.jesshamrick.com/2012/09/18/emacs-as-a-python-ide/.
 
 * Tex
 
-https://piotrkazmierczak.com/2010/emacs-as-the-ultimate-latex-editor/
+Emacs is the best editor even for tex edition! I recommend the following introduction to tex in emacs
+https://piotrkazmierczak.com/2010/emacs-as-the-ultimate-latex-editor/.
+
+** Latex-math-mode
+
+Activates latex math mode in Latex.
+
+#+BEGIN_SRC emacs-lisp
+(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+#+END_SRC
+
+Changes latex math mode prefix. It has to be changed before latex.el is loaded (see an [[http://emacs.1067599.n8.nabble.com/Set-LaTeX-math-abbrev-prefix-td84574.html][explanation]]).
+
+#+BEGIN_SRC emacs-lisp
+(setq LaTeX-math-abbrev-prefix "ç")
+#+END_SRC
+
+**** Latex math mode abbreviations
+
+Adds new abbreviations for =latex-math-mode=. They have to be added before =latex.el= is loaded, as happens with changing the prefix.
+
+#+BEGIN_SRC emacs-lisp
+(setq LaTeX-math-list
+  (quote (
+     ("B" "mathbb" "" nil)
+     ("K" "mathfrack" "" nil)
+     ("R" "mathrm" "" nil)
+     ("O" "overline" "" nil)
+     ("=" "cong" "" nil)
+     ("C-e" "emptyset" "" nil)
+     ("<right>" "longrightarrow" "" nil)
+     ("<left>" "longleftarrow" "" nil)
+     ("C-<right>" "Longrightarrow" "" nil)
+     ("C-<left>" "Longleftarrow" "" nil)
+     ("^" "widehat" "" nil)
+     ("~" "widetilde" "" nil)
+     ("'" "partial" "" nil)
+     ("0" "varnothing" "" nil)
+     ("C-(" "left(" "" nil)
+     ("C-)" "right)" "" nil)
+     )))
+#+END_SRC
+
+Explore these links:
+- http://tex.stackexchange.com/questions/29301/emacs-auctex-how-to-get-frac-and-bm
+- https://www.reddit.com/r/emacs/comments/3n3l4k/for_auctex_mathmode_how_can_i_add_new_shortcuts/
+- http://tex.stackexchange.com/questions/112708/emacs-auctex-can-latex-math-list-read-a-macro-that-requires-input
+- http://tex.stackexchange.com/questions/200517/error-adding-new-value-to-latex-math-list-with-custom-function
+
+** CDLaTeX
+
+Not happy with it...
+
+(use-package cdlatex
+  :config
+  (add-hook 'LaTeX-mode-hook 'turn-on-cdlatex)   ; with AUCTeX LaTeX mode
+  (add-hook 'latex-mode-hook 'turn-on-cdlatex)   ; with Emacs latex mode
+)
+
+** Auto closed brackets insertion
+
+Tells auctex to automatically close brackets. See the [[https://www.gnu.org/software/auctex/manual/auctex.html#index-LaTeX_002delectric_002dleft_002dright_002dbrace][documentation]].
+NOTE: It does not work with CDLaTeX.
+
+#+BEGIN_SRC emacs-lisp
+(setq LaTeX-electric-left-right-brace t)
+#+END_SRC
+
+Adds auto close capability for $. See this [[http://tex.stackexchange.com/questions/75697/auctex-how-to-cause-math-mode-dollars-to-be-closed-automatically-with-electric][question]].
+
+#+BEGIN_SRC emacs-lisp
+(defun brf-TeX-Inserting (sta stb stc num)
+  " after entering stb insert stc and go back with the cursor by num positions.
+    With prefix nothings gets replaced. If the previous char was sta nothing will be 
+    replaces as well." 
+  (if (null current-prefix-arg)
+      (progn
+        (if (= (preceding-char) sta )
+            (insert stb)
+          (progn (insert stc) (backward-char num))))
+    (insert stb)))
+
+(defun brf-TeX-dollarm () (interactive) (brf-TeX-Inserting ?\\ "$"  "$$" 1))
+
+(add-hook 'LaTeX-mode-hook
+   (function (lambda ()
+       (local-set-key (kbd "$")      'brf-TeX-dollarm))))
+#+END_SRC
 
 ** Auctex
 
 Ensures that the auctex package is installed.
-
-We also change latex math mode prefix. It has to be changed before latex.el is loaded (see an [[http://emacs.1067599.n8.nabble.com/Set-LaTeX-math-abbrev-prefix-td84574.html][explanation]]).
 
 #+BEGIN_SRC emacs-lisp
 (use-package tex
@@ -185,31 +299,45 @@ We also change latex math mode prefix. It has to be changed before latex.el is l
   (setq TeX-parse-self t)
   (setq TeX-save-query nil)
   (setq TeX-PDF-mode t)
-  (setq LaTeX-math-abbrev-prefix "ç")
 )
 (require 'latex)
+#+END_SRC
 
-;; Use pdf-tools to open PDF files
-(setq TeX-view-program-selection '((output-pdf "PDF Tools")) TeX-source-correlate-start-server t)
+** pdf-tools
 
-;; Update PDF buffers after successful LaTeX runs
-(add-hook 'TeX-after-TeX-LaTeX-command-finished-hook #'TeX-revert-document-buffer)
+Uses pdf-tools for treating the pdf.
+
+#+BEGIN_SRC emacs-lisp
+(use-package pdf-tools
+  ;:init (setq auto-revert-interval 0.5)
+)
+#+END_SRC
+
+Makes auctex to use pdf tools and update it automatically after compiling.
+#+BEGIN_SRC emacs-lisp
+(setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+      TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
+      TeX-source-correlate-start-server t)
+
+;; Refreshes the buffer after compilation.
+(add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer)
 #+END_SRC
 
 ** Flymake
 
-*** Check tex syntax
+*** TODO Check tex syntax
+
+Not ready yet...
 
 #+BEGIN_SRC emacs-lisp
 (use-package flymake
-  :config
-  (add-hook 'LaTeX-mode-hook 'flymake-mode)
+  ;:config
+  ;(add-hook 'LaTeX-mode-hook 'flymake-mode)
 )
 
 (defun flymake-get-tex-args (file-name)
 (list "pdflatex"
 (list "-file-line-error" "-draftmode" "-interaction=nonstopmode" file-name)))
-
 #+END_SRC
 
 *** Check spelling
@@ -239,7 +367,11 @@ http://emacs.stackexchange.com/questions/19982/hunspell-error-in-emacs
 (add-hook 'text-mode-hook 'flyspell-buffer)
 #+END_SRC
 
-**** Change the current dictionary
+**** TODO Change the current dictionary
+
+Makes =C-c d= to change the current dictionary and checking the buffer accordingly. See https://www.emacswiki.org/emacs/FlySpell#toc5.
+
+NOTE: Currently pressing =C-c d= for the first time changes from english to english.
 
 #+BEGIN_SRC emacs-lisp
 (let ((langs '("en_US" "es_ES")))
@@ -250,8 +382,10 @@ http://emacs.stackexchange.com/questions/19982/hunspell-error-in-emacs
   (interactive)
   (let ((lang (ring-ref lang-ring -1)))
     (ring-insert lang-ring lang)
-    (ispell-change-dictionary lang))
-  (message "Switched dictionary to %s" lang)
+    (ispell-change-dictionary lang)
+    ()
+    (message "Switched dictionary to %s." lang))
+  (flyspell-buffer)
 )
 
 (global-set-key (kbd "C-c d") 'cycle-ispell-languages)
@@ -267,103 +401,28 @@ http://emacs.stackexchange.com/questions/19982/hunspell-error-in-emacs
 
 ** Compile
 
-Compiles as many times as needed. The keybinding is C-c l. Found in https://www.emacswiki.org/emacs/TN.
+Compiles as many times as needed. The keybinding is =C-c l=. See also https://www.emacswiki.org/emacs/TN.
 
 #+BEGIN_SRC emacs-lisp
-(require 'tex-buf)
-(defun TeX-command-default (name)
-  "Next TeX command to use. Most of the code is stolen from `TeX-command-query'."
-  (cond ((if (string-equal name TeX-region)
-			     (TeX-check-files (concat name "." (TeX-output-extension))
-					      (list name)
-					      TeX-file-extensions)
-			   (TeX-save-document (TeX-master-file)))
-			 TeX-command-default)
-			((and (memq major-mode '(doctex-mode latex-mode))
-			      (TeX-check-files (concat name ".bbl")
-					       (mapcar 'car
-						       (LaTeX-bibliography-list))
-					       BibTeX-file-extensions))
-			 ;; We should check for bst files here as well.
-			 TeX-command-BibTeX)
-			((TeX-process-get-variable name
-						   'TeX-command-next
-						   TeX-command-Show))
-			(TeX-command-Show)))
-
-
-(defcustom TeX-texify-Show t "Start view-command at end of TeX-texify?" :type 'boolean :group 'TeX-command)
-(defcustom TeX-texify-max-runs-same-command 5 "Maximal run number of the same command" :type 'integer :group 'TeX-command)
-
-(defun TeX-texify-sentinel (&optional proc sentinel)
-  "Non-interactive! Call the standard-sentinel of the current LaTeX-process.
-If there is still something left do do start the next latex-command."
-  (set-buffer (process-buffer proc))
-  (funcall TeX-texify-sentinel proc sentinel)
-  (let ((case-fold-search nil))
-    (when (string-match "\\(finished\\|exited\\)" sentinel)
-      (set-buffer TeX-command-buffer)
-      (unless (plist-get TeX-error-report-switches (intern (TeX-master-file)))
-	(TeX-texify)))))
-
-(defun TeX-texify ()
-  "Get everything done."
-  (interactive)
-  (let ((nextCmd (TeX-command-default (TeX-master-file)))
-	proc)
-    (if (and (null TeX-texify-Show)
-	     (equal nextCmd TeX-command-Show))
-	(when  (called-interactively-p 'any)
-	  (message "TeX-texify: Nothing to be done."))
-      (TeX-command nextCmd 'TeX-master-file)
-      (when (or (called-interactively-p 'any)
-		(null (boundp 'TeX-texify-count-same-command))
-		(null (boundp 'TeX-texify-last-command))
-		(null (equal nextCmd TeX-texify-last-command)))
-	(mapc 'make-local-variable '(TeX-texify-sentinel TeX-texify-count-same-command TeX-texify-last-command))
-	(setq TeX-texify-count-same-command 1))
-      (if (>= TeX-texify-count-same-command TeX-texify-max-runs-same-command)
-	  (message "TeX-texify: Did %S already %d times. Don't want to do it anymore." TeX-texify-last-command TeX-texify-count-same-command)
-	(setq TeX-texify-count-same-command (1+ TeX-texify-count-same-command))
-	(setq TeX-texify-last-command nextCmd)
-	(and (null (equal nextCmd TeX-command-Show))
-	     (setq proc (get-buffer-process (current-buffer)))
-	     (setq TeX-texify-sentinel (process-sentinel proc))
-	     (set-process-sentinel proc 'TeX-texify-sentinel))))))
-
-(add-hook 'LaTeX-mode-hook '(lambda () (local-set-key (kbd "C-c l") 'TeX-texify)))
+(add-hook 'LaTeX-mode-hook '(lambda () (local-set-key (kbd "C-c l") (kbd "C-c C-a C-c C-a"))))
 #+END_SRC
 
-** Latex-math-mode
+** Reftex
 
-Activates latex math mode in Latex.
+Activates the reftex package for references. See how it works in https://www.gnu.org/software/emacs/manual/html_node/reftex/RefTeX-in-a-Nutshell.html.
 
-#+BEGIN_SRC emacs-lisp
-(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
-#+END_SRC
-
-**** Latex math mode abbreviations
-
-Adds new abbreviations for =latex-math-mode=.
+We add a eqref reference format. See this [[http://tex.stackexchange.com/questions/118640/using-eqref-with-reftex][question]].
 
 #+BEGIN_SRC emacs-lisp
-(setq LaTeX-math-list
-  (quote
-    (("B" "mathbb{" "" nil)
-     ("C" "mathcal{" "" nil)
-     ("K" "mathfrack{" "" nil)
-     ("=" "cong" "" nil)
-     ("<right>" "longrightarrow" "" nil)
-     ("<left>" "longleftarrow" "" nil)
-     ("C-<right>" "Longrightarrow" "" nil)
-     ("C-<left>" "Longleftarrow" "" nil)
-     ("^" "widehat" "" nil)
-     ("~" "widetilde" "" nil)
-     ("'" "\partial" "" nil)
-     ("0" "varnothing" "" nil)
-     ("C-(" "left(" "" nil)
-     ("C-)" "right)" "" nil)
-     )))
+(use-package reftex
+  :init
+  (setq reftex-plug-into-AUCTeX t)
+  (setq reftex-label-alist '((nil ?e nil "~\\eqref{%s}" nil nil)))
+  :config
+  (add-hook 'LaTeX-mode-hook 'turn-on-reftex)   ; with AUCTeX LaTeX mode
+  (add-hook 'latex-mode-hook 'turn-on-reftex)   ; with Emacs latex mode
+
+)
 #+END_SRC
 
 * Org-mode
@@ -468,6 +527,41 @@ Uses a line between headings.
 #+BEGIN_SRC emacs-lisp
 (setq org-cycle-separator-lines 1)
 #+END_SRC
+
+**  Auto closed brackets insertion
+
+Activates the =electric-pair-mode=, which inserts brackets in pairs.
+
+#+BEGIN_SRC emacs-lisp
+(add-hook 'org-mode-hook (lambda () (electric-pair-mode 1)))
+#+END_SRC
+
+Activates the =electric-pair-mode=, which inserts brackets in pairs. See http://ergoemacs.org/emacs/emacs_insert_brackets_by_pair.html.
+
+#+BEGIN_SRC emacs-lisp
+(add-hook 'LaTeX-mode-hook (lambda () (electric-pair-mode 1)))
+#+END_SRC
+
+Adds more brackets support to =electric-pair-mode=.
+
+#+BEGIN_SRC emacs-lisp
+;; make electric-pair-mode work on more brackets
+(setq electric-pair-pairs '(
+  (?\" . ?\")
+  (?\{ . ?\})
+  (?\[ . ?\])
+  (?\( . ?\))
+  (?$ . ?$)
+  (?= . ?=)
+  (?_ . ?_)
+))
+#+END_SRC
+
+Adds support for $. See this [[http://tex.stackexchange.com/questions/75697/auctex-how-to-cause-math-mode-dollars-to-be-closed-automatically-with-electric][question]].
+
+(add-hook 'LaTeX-mode-hook
+  '(lambda () (define-key LaTeX-mode-map (kbd "$") 'self-insert-command)))
+
 
 ** Maths
 
@@ -600,3 +694,32 @@ http://emacsredux.com/blog/2015/01/18/customizing-the-fringes/
 #+END_SRC
 
 #  LocalWords:  Auctex
+
+* Default screens and files
+
+Splits the screen and open some buffers (myinit.org, shortcuts.org, *scratch*), see this [[http://stackoverflow.com/questions/999708/how-to-open-files-automatically-when-starting-emacs][question]].
+Recall that todo.org is the initial buffer choice.
+#+BEGIN_SRC emacs-lisp
+(split-window-horizontally)
+(find-file "/home/andreshp/.emacs.d/myinit.org") 
+(split-window-vertically)
+(find-file "/home/andreshp/.emacs.d/shortcuts.org") 
+(split-window-horizontally)
+#+END_SRC 
+
+* TODO Features to add
+
+** Wanted features
+
+- Auctex equations formatting.
+- Auctex shortcut for formatting.
+- org-mode shortcut for compiling the pdf.
+- Install https://github.com/tlh/workgroups.el.
+- org-mode snippet and shortcut for writing #+BEGIN_SRC, etc.
+- cua-mode : C-v paste on selected text.
+
+** Possible features
+
+- clatex : https://github.com/cdominik/cdlatex
+
+
