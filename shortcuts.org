@@ -1,0 +1,134 @@
+#+TITLE: Shortcuts in emacs
+#+AUTHOR: Andrés Herrera Poyatos
+
+* Basic Shorcuts
+
+*** Commands
+
+1. C-g : Quit from the current command insertion.
+
+*** Cua-mode
+
+See https://ergoemacs.github.io/minor-modes.html.
+
+1. C-v : Paste text.
+2. C-xu :
+Cut the  selected text. It  is only available  when some text is  selected (traditionally or  with a
+rectangle).
+3. C-c : Copy the selected text. It is only available when some text is selected (traditionally or with a rectangle).
+4. C-z : Undo the last action. Recall that there is no redo command in emacs. The operations applied to the code are saved in a stack. Undo is just another operation and hence it can be undone by itself. See http://stackoverflow.com/questions/3527142/how-do-you-redo-changes-after-undo-with-emacs.
+5. C-return : Starts a rectangle for selecting text. In a rectangle, return changes the cursor to the next vertex of the rectangle.
+
+*** Editor
+
+1. C-x C-c : Exits emacs.
+2. f10 : Enters to global menu.
+3. C-x C-+ : Increases the text size.
+4. C-x C-- : Decreases the text size.
+
+*** Cursor
+
+1. C-x C-t : Transposes the current line with the line above it.
+2. M-< : Moves to the beginning of the buffer.
+3. M-> : Moves to the end of the buffer.
+4. C-f : Forward a character.
+5. C-b : Backward a character.
+6. C-n : Forward a line.
+7. C-p : Backward a line.
+8. C-a : Go to the beginning of the line.
+9. C-e : Go to the end of the line.
+10. M-f : Forward a word.
+11. M-b : Backward a word.
+12. M-e : Forward a sentence.
+13. M-a : Backward a sentence.
+
+*** File edition
+
+**** Cua-mode
+**** Others
+
+1. C-y : Paste.
+2. C-w : Cut.
+3. M-w : Copy.
+
+*** Buffers / files
+
+1. C-x C-f : Creates a new file.
+2. C-x b : Shows the current opened buffers list.
+3. C-x C-b : Shows the current opened buffers list in a new buffer. 
+4. C-x <left> or C-x <right> : Changes the current buffer.
+5. C-x C-s : Saves the current buffer.
+6. C-x s : Saves the buffers with changes.
+7. C-x 2 : Divides the current windows in two horizontal subwindows.
+8. C-x 3 : Divides the current windows in two vertical subwindows3.
+9. C-x 1 : Removes every windows division and leaves only one windows with the
+   current buffer.
+10. C-x o : Moves to the next visualized buffer.
+
+*** Org-mode
+
+1. tab in a line with * : Changes the title importance.
+2. M-enter in a itemize or enumerate : Adds a new line for the itemize / enumerate.
+3. M-arrow : Moves the current itemize/enumerate/section in the arrow's direction.
+4. C-c C-x C-l on a math formula : Renderizes the math formula. The formula must
+   be written between \[\] or \(\) for inline formulas. Example: I have studied
+   the values \((\log(\Phi_n))^{(k)}(1)\). Furthermore, I like the following
+   Taylor series
+
+\[\sum_{j = 0}^\infty \binom{m+j-1}{j} x^{jb} = \frac{1}{(1-x^b)^m}.\]
+
+
+
+\[\frac{x^2 + 1}{x}\]
+
+5. C-c C-c on a renderized math formula : Returns to the formula's code. 
+
+6. Export to pdf: http://orgmode.org/guide/LaTeX-and-PDF-export.html.
+
+*** Keyboard macros
+Keyboard macros allows us to save a actions sequence. Afterwards, this sequence can be
+applied whenever we want. Whenever you press f3 Emacs will start to save the
+actions sequence. The key f4 allows you to finish the sequence. Also by pressing
+f4 the saved sequence is applied.
+
+
+* Packages
+
+** auctex
+
+It provides tex support in emacs.
+
+*** Mathematics
+
+1. ç-<binding> : Introduces math latex command. The associated bindings are available in Latex-math-mode list info:auctex. 
+
+*** Compilation
+
+*** Fonts
+
+1. C-c C-f C-b : Inserts bold face ‘\textbf{∗}’ text.
+2. C-c C-f C-i : Inserts italics ‘\textit{∗}’ text.
+3. C-c C-f C-e : Inserts emphasized ‘\emph{∗}’ text.
+4. C-c C-f C-s : Inserts slanted ‘\textsl{∗}’ text.
+5. C-c C-f C-r : Inserts roman \textrm{∗} text.
+6. C-c C-f C-f : Inserts sans serif ‘\textsf{∗}’ text.
+7. C-c C-f C-t : Inserts typewriter ‘\texttt{∗}’ text.
+8. C-c C-f C-c : Inserts SMALL CAPS ‘\textsc{∗}’ text.
+9. C-c C-f C-d : Deletes the innermost font specification containing point.
+
+** dired
+
+You can load dired by using M-x dired. It is a more complex version of C-x
+C-f. You can select files with d and delete the selected files by
+pushing x.
+
+** magit
+Git integration in Emacs. Pending to be studied and installed.
+
+** solarized-theme
+
+Solarized theme for emacs. There are two versions:
+1. solarized-dark : Blue version of the theme. It is too dark for my screen during the day. I am using it during the night.
+2. solarized-light : The first light theme that I enjoy. I am a big fan of Cobalt themes and this theme reminds me to a light version of them.
+
+To change the current theme simply use M-x load-theme <theme name>.
