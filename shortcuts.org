@@ -104,6 +104,9 @@ It provides tex support in emacs.
 
 *** Compilation
 
+1. C-c l : Compile the whole project twice (I introduced this shortcut, originally the compilation short-cut is C-c C-a).
+2. C-c C-e : Introduces an environment.
+
 *** Fonts
 
 1. C-c C-f C-b : Inserts bold face ‘\textbf{∗}’ text.
@@ -123,7 +126,20 @@ C-f. You can select files with d and delete the selected files by
 pushing x.
 
 ** magit
+
 Git integration in Emacs. Pending to be studied and installed.
+
+** org-agenda
+
+1. C-c a : Open org-agenda menu.
+2. C-c C-s : In an org file, schedule the current org item.
+3. C-c C-d : In an org file, add a deadline for the current org item.
+
+*** When agenda is open...
+
+1. Shift-F : Follow mode. Each agenda's task is followed in another window, that is, the .org file with the task is opened.
+2. f : Moves forward a week.
+3. b : Moves backward a week.
 
 ** solarized-theme
 

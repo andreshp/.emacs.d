@@ -53,11 +53,6 @@ Improves emacs default behavior. Concretely, the menu is not displayed.
 (use-package better-defaults)
 #+END_SRC 
 
-Adds a default file, which will be opened each time that you open emacs (see this [[http://stackoverflow.com/questions/7083181/how-to-load-file-into-buffer-and-switch-to-buffer-on-start-up-in-emacs][question]]).
-#+BEGIN_SRC emacs-lisp
-(setq initial-buffer-choice "~/Documents/todo.org")
-#+END_SRC 
-
 Maximizes the editor to fullscreen at startup.
 
 #+BEGIN_SRC emacs-lisp
@@ -196,6 +191,23 @@ http://www.jesshamrick.com/2012/09/18/emacs-as-a-python-ide/.
   (elpy-enable))
 #+END_SRC 
 
+** c++
+
+#+BEGIN_SRC emacs-lisp
+(setq c-default-style "linux"
+      c-basic-offset 4)
+#+END_SRC 
+
+** Gap
+
+#+BEGIN_SRC emacs-lisp
+(use-package gap-mode
+  :init
+  (setq gap-executable "~/Software/ProgrammingLanguages/GAP/gap4r8/bin")
+  (setq gap-start-options (list "-l" "~/Software/ProgrammingLanguages/GAP/gap4r8/bin/lib" "-m" "2m"))
+)
+#+END_SRC 
+
 * Tex
 
 Emacs is the best editor even for tex edition! I recommend the following introduction to tex in emacs
@@ -258,16 +270,16 @@ Manual: https://staff.science.uva.nl/c.dominik/Tools/cdlatex/index.html
 (use-package cdlatex
   :init
   (setq cdlatex-env-alist
-    '(("def" "\\begin{definition}\n\n\\end{definition}\n" nil)
+    '(("def" "\\begin{definition}\n\\end{definition}\n" nil)
       ("thm" "\\begin{theorem}\nAUTOLABEL\n\n\\end{theorem}\n" nil)
-      ("lem" "\\begin{lemma}\nAUTOLABEL\n\n\\end{lemma}\n" nil)
-      ("pro" "\\begin{proposition}\nAUTOLABEL\n\n\\end{proposition}\n" nil)
-      ("cor" "\\begin{corollary}\nAUTOLABEL\n\n\\end{corollary}\n" nil)
-      ("rem" "\\begin{remark}\nAUTOLABEL\n\n\\end{remark}\n" nil)
+      ("lem" "\\begin{lemma}\n\\end{lemma}\n" nil)
+      ("prop" "\\begin{proposition}\n\\end{proposition}\n" nil)
+      ("cor" "\\begin{corollary}\n\\end{corollary}\n" nil)
+      ("rem" "\\begin{remark}\n\\end{remark}\n" nil)
       ("proof" "\\begin{proof}\n\\end{proof}\n" nil)
       ("con" "\\begin{conjecture}\nAUTOLABEL\n\n\\end{conjecture}\n" nil)
-      ("exe" "\\begin{exercise}\nAUTOLABEL\n  \\begin{statement}\n    \n  \\end{statement}\n  \\begin{answer}\n    \n  \\end{answer}\n\\end{exercise}\n" nil)
-      ("ex" "\\begin{ex}\nAUTOLABEL\n?\n\\end{ex}\n" nil)
+      ("exe" "\\begin{exercise}\n  \\begin{statement}\n    \n  \\end{statement}\n  \\begin{answer}\n    \n  \\end{answer}\n\\end{exercise}\n" nil)
+      ("ex" "\\begin{ex}\n\\end{ex}\n" nil)
       ("cas" "\\begin{cases}?\\end{cases}" nil)))
 
   (setq cdlatex-command-alist
@@ -278,7 +290,8 @@ Manual: https://staff.science.uva.nl/c.dominik/Tools/cdlatex/index.html
       ("cor" "Insert corollary env" "" cdlatex-environment ("cor") t nil)
       ("rem" "Insert remark env" "" cdlatex-environment ("rem") t nil)
       ("proof" "Insert proof env" "" cdlatex-environment ("proof") t nil)
-      ("eq" "Insert short equation env" "\\[?\\]" cdlatex-position-cursor nil t nil)
+      ("eq" "Insert short equation env" "\\[ ? \\]" cdlatex-position-cursor nil t nil)
+      ("oi" "Insert an open interval" "]?[" cdlatex-position-cursor nil t t)
       ("exe" "Insert an exercise env" "" cdlatex-environment ("exe") t nil)
       ("ex" "Insert an example env" "" cdlatex-environment ("ex") t nil)
       ("set" "Insert a set" "\\{?\\}" cdlatex-position-cursor nil t t)
@@ -289,8 +302,8 @@ Manual: https://staff.science.uva.nl/c.dominik/Tools/cdlatex/index.html
   (setq cdlatex-math-symbol-alist
     '((?i ("\\in" "\\infty" "\\imath"))
       (?t ("\\to" "\\times" "\\tau"))
-      (?p ("\\pi" "\\varpi" "\\partial"))
-      (?n ("\\ne" "\\nu"))
+      (?p ("\\pi" "\\varpi"))
+      (?n ("\\ne" "\\nu" "\\nabla"))
       (?c ("\\cap" "\\cup" "\\cos"))
       ;(?< ("\\leftarrow" "\\Leftarrow" "\\longleftarrow" "\\Longleftarrow"))
       ;(?> ("\\rightarrow" "\\Rightarrow" "\\longrightarrow" "\\Longrightarrow"))
@@ -410,7 +423,7 @@ http://emacs.stackexchange.com/questions/19982/hunspell-error-in-emacs
 (setq ispell-dictionary "en_US") ; Default dictionary to use
 (setq ispell-really-hunspell t)
 
-(add-hook 'text-mode-hook 'flyspell-mode)
+(add-hook 'org-mode-hook 'flyspell-mode)
 (add-hook 'text-mode-hook 'flyspell-buffer)
 #+END_SRC
 
@@ -587,9 +600,7 @@ Activates the =electric-pair-mode=, which inserts brackets in pairs.
 
 Activates the =electric-pair-mode=, which inserts brackets in pairs. See http://ergoemacs.org/emacs/emacs_insert_brackets_by_pair.html.
 
-#+BEGIN_SRC emacs-lisp
 (add-hook 'LaTeX-mode-hook (lambda () (electric-pair-mode 1)))
-#+END_SRC
 
 Adds more brackets support to =electric-pair-mode=.
 
@@ -683,35 +694,124 @@ Integrates org-agenda with gnome's agenda.
 
 http://jameswilliams.be/blog/2016/01/11/Taming-Your-GCal.html
 
+https://www.youtube.com/watch?v=IofHvutUWV0
+
+** org-gcal (org-agenda with google calendar)
+
+See [[http://cestlaz.github.io/posts/using-emacs-26-gcal/#.WMqoP-0TacM][cestlaz blog]] for a nice explanation of org-gcal. The code that I use mostly comes from this post.
+
 #+BEGIN_SRC emacs-lisp
-(setq org-default-notes-file "~/Documents/todo.org")
-;(define-key global-map "\C-cc" 'org-capture)
+(setq package-check-signature nil)
+
+(use-package org-gcal
+  :ensure t
+  :config  
+  (setq org-gcal-client-id "58916212726-uptiek1aumcrrlj26grmoie96liu33sb.apps.googleusercontent.com"
+	org-gcal-client-secret "35Q7FCu_S_Atknx-pM7YsDmA"
+	org-gcal-file-alist '(("andreshp9@gmail.com" .  "~/Documents/orgfiles/schedule.org")
+                          ("j3jst6u2nfsuk0c37b1kl3c4sk@group.calendar.google.com" . "~/Documents/orgfiles/repetitive_tasks.org")
+                          ("30jiae6koodln80u78srf58t4k@group.calendar.google.com" . "~/Documents/orgfiles/exams.org")
+                          ("82bi6tgguo9iqdpmusnp11ago8@group.calendar.google.com" . "~/Documents/orgfiles/classes.org")))
+  (add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync) ))
+  (add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) ))
+)
+
+(setq org-agenda-files (list "~/Documents/orgfiles/schedule.org"
+			     "~/Documents/orgfiles/todo.org"
+			     "~/Documents/orgfiles/repetitive_tasks.org"
+			     "~/Documents/orgfiles/exams.org"
+                         "~/Documents/orgfiles/classes.org"))
+
+(setq org-capture-templates
+  '(("a" "Appointment" entry (file  "~/Documents/orgfiles/schedule.org" )
+	 "* %?\n\n%^T\n\n:PROPERTIES:\n\n:END:\n\n")
+	("l" "Link" entry (file+headline "~/Documents/orgfiles/links.org" "Links")
+	 "* %? %^L %^g \n%T" :prepend t)
+	("e" "Exam" entry (file+headline "~/Documents/orgfiles/exams.org" "Exams")
+	 "* %?\n\n %^T\n\n%T" :prepend t)
+	("b" "Blog idea" entry (file+headline "~/Documents/orgfiles/todo.org" "Blog Topics:")
+	 "* %?\n%T" :prepend t)
+	("t" "To Do Item" entry (file+headline "~/Documents/orgfiles/todo.org" "To Do")
+	 "* TODO %?\n%u" :prepend t)
+	("n" "Note" entry (file+headline "~/Documents/orgfiles/todo.org" "Note space")
+	 "* %?\n%u" :prepend t)
+	("j" "Journal" entry (file+datetree "~/Documents/orgfiles/journal.org")
+	 "* %?\nEntered on %U\n  %i\n  %a")
+	("s" "Screencast" entry (file "~/Documents/orgfiles/screencastnotes.org")
+	 "* %?\n%i\n")))
+
+(define-key global-map "\C-cc" 'org-capture)
+
 #+END_SRC
+
+
+** calfw (graphic calendar)
+
+#+BEGIN_SRC emacs-lisp
+(use-package calfw
+  :ensure ;TODO: 
+  :config
+  (require 'calfw) 
+  (require 'calfw-org)
+  (setq cfw:org-overwrite-default-keybinding t)
+  (require 'calfw-ical)
+
+  (defun my-open-calendar ()
+    (interactive)
+    (cfw:open-calendar-buffer
+     :contents-sources
+     (list
+      (cfw:org-create-source "Green")  ; orgmode source
+      (cfw:ical-create-source "gcal" "https://calendar.google.com/calendar/ical/andreshp9%40gmail.com/public/basic.ics" "IndianRed")
+      (cfw:ical-create-source "gcal" "https://calendar.google.com/calendar/ical/82bi6tgguo9iqdpmusnp11ago8%40group.calendar.google.com/public/basic.ics" "IndianRed") ; google calendar ICS
+      ))) 
+  (setq cfw:org-overwrite-default-keybinding t))
+
+(use-package calfw-gcal
+	:ensure t
+	:config
+	(require 'calfw-gcal))
+#+END_SRC
+
+
+(setq org-default-notes-file "~/Documents/orgfiles/todo.org")
+;(define-key global-map "\C-cc" 'org-capture)
 
 Log done state in TODOs
-#+BEGIN_SRC emacs-lisp
 (setq org-log-done t)
-#+END_SRC
 
 Set Org-Capture templates
-#+BEGIN_SRC emacs-lisp
-(setq org-capture-templates
-  `(("t" "todo" entry (file+headline "~/Documents/todo.org" "Tasks")
-    "** TODO %^{Task} %?")))
-#+END_SRC
+;(setq org-capture-templates
+;  `(("t" "todo" entry (file+headline "~/Documents/orgfiles/todo.org" "Tasks")
+;    "** TODO %^{Task} %?")))
+
+(setq org-agenda-files (list "~/Documents/orgfiles/todo.org"
+                             "~/Documents/orgfiles/schedule.org"
+))
 
 #+BEGIN_SRC emacs-lisp
-(setq org-agenda-files (list "~/Documents/todo.org"
-                             "~/Documents/schedule.org"
-))
 ; Set key combos
 (define-key global-map "\C-ca" 'org-agenda)
 #+END_SRC
 
 
-#+BEGIN_SRC emacs-lisp
+Code to open my own calendar.
+
 (use-package calfw)
-#+END_SRC
+(require 'calfw-org)
+
+(defun my-open-calendar ()
+  (interactive)
+  (cfw:open-calendar-buffer
+   :contents-sources
+   (list
+    (cfw:org-create-source "Green")  ; orgmode source
+    ;(cfw:howm-create-source "Blue")  ; howm source
+    ;(cfw:cal-create-source "Orange") ; diary source
+    ;(cfw:ical-create-source "Moon" "~/moon.ics" "Gray")  ; ICS source1
+    (cfw:ical-create-source "gcal" "https://calendar.google.com/calendar/ical/andreshp9%40gmail.com/public/basic.ics" "IndianRed") ; google calendar ICS
+   ))) 
+;(define-key global-map "\C-ca" 'my-open-calendar)
 
 * Theme
 
@@ -782,18 +882,34 @@ http://emacsredux.com/blog/2015/01/18/customizing-the-fringes/
 )
 #+END_SRC
 
-#  LocalWords:  Auctex
+** Split windows
+
+How to change the default split-screen direction?
+http://stackoverflow.com/questions/7997590/how-to-change-the-default-split-screen-direction
+
+#+BEGIN_SRC emacs-lisp
+(setq split-width-threshold nil)
+#+END_SRC
 
 * Default screens and buffers
 
 Splits the screen and open some buffers (myinit.org, shortcuts.org, *scratch*), see this [[http://stackoverflow.com/questions/999708/how-to-open-files-automatically-when-starting-emacs][question]].
 Recall that todo.org is the initial buffer choice.
 #+BEGIN_SRC emacs-lisp
+;(org-agenda-list)
+(cfw:open-org-calendar)
 (split-window-horizontally)
 (find-file "/home/andreshp/.emacs.d/myinit.org") 
 (split-window-vertically)
-(find-file "/home/andreshp/.emacs.d/shortcuts.org") 
-(split-window-horizontally)
+;(switch-to-buffer "*scratch*")
+;(find-file "/home/andreshp/.emacs.d/shortcuts.org") 
+#+END_SRC 
+
+
+Adds a default file, which will be opened each time that you open emacs (see this [[http://stackoverflow.com/questions/7083181/how-to-load-file-into-buffer-and-switch-to-buffer-on-start-up-in-emacs][question]]).
+#+BEGIN_SRC emacs-lisp
+(setq inhibit-startup-screen t)
+;(setq initial-buffer-choice "*scratch*")
 #+END_SRC 
 
 * TODO Features to add
