@@ -50,13 +50,13 @@ However, I prefer this behaviour to be used by default. Hence I use the followin
 Improves emacs default behavior. Concretely, the menu is not displayed.
 
 #+BEGIN_SRC emacs-lisp
-(use-package better-defaults)
+  (use-package better-defaults)
 #+END_SRC 
 
 Maximizes the editor to fullscreen at startup.
 
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
+  (add-to-list 'default-frame-alist '(fullscreen . maximized))
 #+END_SRC 
 
 * Text formating
@@ -66,14 +66,14 @@ Maximizes the editor to fullscreen at startup.
 Chooses Source Code Pro as the editor's font.
 
 #+BEGIN_SRC emacs-lisp
-  (custom-set-faces
+(setq default-frame-alist '((font . "monospace-13")))
+;;(custom-set-faces
     ;; custom-set-faces was added by Custom.
     ;; If you edit it by hand, you could mess it up, so be careful.
     ;; Your init file should contain only one such instance.
     ;; If there is more than one, they won't work right.
-    '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 102 :width normal :foundry "PfEd" :family "Source Code Pro")))))
+  ;;'(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 102 :width normal :foundry "PfEd" :family "Source Code Pro")))))
 #+END_SRC
-
 
 ** Indentation
 
@@ -101,7 +101,7 @@ Sets the row length in characters (fill-column variable) and turns orn the visua
 
 An introduction to wraps and filling in Emacs can be found in [[johnlaudun.org/20080321-word-wrap-filling-in-emacs/][John Laudun's blog]].
 
-Visual-liºne-mode allows us to use soft wraps when the text line's length is greater than the current windows width. If we use this mode with the minor mode visual-fill-column, then we can choose a maximum line's length, measured in number of characters. The number of characters is saved in the fill-column variable.
+Visual-line-mode allows us to use soft wraps when the text line's length is greater than the current windows width. If we use this mode with the minor mode visual-fill-column, then we can choose a maximum line's length, measured in number of characters. The number of characters is saved in the fill-column variable.
 
 The following code also sets a symbol for soft wrapped lines, which is used instead of a line number.
 
@@ -292,29 +292,35 @@ Manual: https://staff.science.uva.nl/c.dominik/Tools/cdlatex/index.html
       ("proof" "Insert proof env" "" cdlatex-environment ("proof") t nil)
       ("eq" "Insert short equation env" "\\[ ? \\]" cdlatex-position-cursor nil t nil)
       ("oi" "Insert an open interval" "]?[" cdlatex-position-cursor nil t t)
+      ("sil" "Insert an semiopen interval [[" "[?[" cdlatex-position-cursor nil t t)
+      ("sir" "Insert an semiopen interval ]]" "]?]" cdlatex-position-cursor nil t t)
       ("exe" "Insert an exercise env" "" cdlatex-environment ("exe") t nil)
       ("ex" "Insert an example env" "" cdlatex-environment ("ex") t nil)
       ("set" "Insert a set" "\\{?\\}" cdlatex-position-cursor nil t t)
       ("frp" "Insert a fraction with partials" "\\frac{\\partial}{\\partial ?}" cdlatex-position-cursor nil t t)
       ("cas" "Insert a cases env" cdlatex-environment ("cas") t t)
+      ("int" "Insert an integral" "\\int_{?}^{} f(s) \\diff s" cdlatex-position-cursor nil t t)
       ("lim" "Insert a limit" "\\lim_{x \\to ?} f(x)" cdlatex-position-cursor nil t t)))
 
   (setq cdlatex-math-symbol-alist
-    '((?i ("\\in" "\\infty" "\\imath"))
+    '((?i ("\\in" "\\imath"))
       (?t ("\\to" "\\times" "\\tau"))
       (?p ("\\pi" "\\varpi"))
       (?p ("\\subset" "\\upsilon"))
       (?n ("\\ne" "\\nu" "\\nabla"))
       (?c ("\\cap" "\\cup" "\\cos"))
+      (?m ("\\mu" "\\mid"))
       (?: ("\\colon"))
       ;(?< ("\\leftarrow" "\\Leftarrow" "\\longleftarrow" "\\Longleftarrow"))
       ;(?> ("\\rightarrow" "\\Rightarrow" "\\longrightarrow" "\\Longrightarrow"))
   ))
 
   (setq cdlatex-math-modify-alist
-    '((?t "\\text"     "\\text"     t nil nil)
-      (?q ("\\mathbb"  nil          t nil nil)
-      (?o "\\overline" "\\overline" t nil nil))))
+    '((?t "\\text"      "\\text"     t nil nil)
+      (?q "\\mathbb"   "\\mathbb"   t nil nil)
+      (?d "\\mathfrak" "\\mathfrak" t nil nil)
+      (?o "\\overline"  "\\overline" t nil nil)
+  ))
 
 :config
   (add-hook 'LaTeX-mode-hook 'turn-on-cdlatex)   ; with AUCTeX LaTeX mode
@@ -350,7 +356,7 @@ Adds auto close capability for $. See this [[http://tex.stackexchange.com/questi
        (local-set-key (kbd "$")      'brf-TeX-dollarm))))
 
 ** Auctex
-
+   
 Ensures that the auctex package is installed.
 
 #+BEGIN_SRC emacs-lisp
@@ -361,6 +367,7 @@ Ensures that the auctex package is installed.
   (setq TeX-parse-self t)
   (setq TeX-save-query nil)
   (setq TeX-PDF-mode t)
+  ;;(setq-default TeX-master nil)
 )
 (require 'latex)
 #+END_SRC
@@ -467,6 +474,12 @@ Compiles as many times as needed. The keybinding is =C-c l=. See also https://ww
 
 #+BEGIN_SRC emacs-lisp
 (add-hook 'LaTeX-mode-hook '(lambda () (local-set-key (kbd "C-c l") (kbd "C-c C-a C-c C-a"))))
+#+END_SRC
+
+Adds the options -interaction=nonstopmode --shell-escape to the compilation command. This allows to uses pygments and, therefore, minted for code inclusion.
+
+#+BEGIN_SRC emacs-lisp
+(eval-after-load "tex" '(progn (setq LaTeX-command (concat LaTeX-command " -synctex=1 -interaction=nonstopmode --shell-escape")) ))
 #+END_SRC
 
 ** Reftex
@@ -692,6 +705,10 @@ Integrates org-agenda with gnome's agenda.
 ;(use-package org-gnome)
 #+END_SRC
 
+** TODO org-ref
+
+See https://www.youtube.com/watch?v=2t925KRBbFc.
+
 * Agenda
 
 http://jameswilliams.be/blog/2016/01/11/Taming-Your-GCal.html
@@ -742,9 +759,10 @@ See [[http://cestlaz.github.io/posts/using-emacs-26-gcal/#.WMqoP-0TacM][cestlaz 
 	("s" "Screencast" entry (file "~/Documents/orgfiles/screencastnotes.org")
 	 "* %?\n%i\n")))
 
+#+END_SRC
+
 (define-key global-map "\C-cc" 'org-capture)
 
-#+END_SRC
 
 
 ** calfw (graphic calendar)
